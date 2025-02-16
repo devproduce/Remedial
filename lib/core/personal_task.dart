@@ -21,6 +21,6 @@ class _PersonalTaskState extends State<PersonalTask> {
   ];
   @override
   Widget build(BuildContext context) {
-    return PersonalTaskDesign();
+    return const PersonalTaskDesign();
   }
 }

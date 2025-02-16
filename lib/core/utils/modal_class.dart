@@ -160,7 +160,7 @@ class DatabaseService {
 
 
   Future<void> deleteAllTimeSlots() async {
-    Database db = await _database!;
+    Database db = _database!;
     await db.delete(_databaseName);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:first_flutter/core/home_screen.dart';
 import 'package:first_flutter/core/input/time_slot_input.dart';
 import 'package:first_flutter/core/utils/modal_class.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,10 @@ class _FreeTimeSlotsState extends State<FreeTimeSlots> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     final weekdays = [
       "Monday",
       "Tuesday",
@@ -54,29 +59,32 @@ class _FreeTimeSlotsState extends State<FreeTimeSlots> {
       backgroundColor: const Color(0xFFE0E0E0),
       body: Column(
         children: [
-          const SizedBox(height: 40),
-          const Icon(Icons.calendar_today),
-          const SizedBox(height: 10),
-          const Text(
+          SizedBox(height: screenHeight * 0.05),
+          const Icon(Icons.calendar_today, size: 30),
+          SizedBox(height: screenHeight * 0.02),
+          Text(
             'Select your free time slots',
             style: TextStyle(
-              fontSize: 26,
-              color: Color(0xFF36454F),
+              fontSize: screenHeight * 0.03,
+              color: const Color(0xFF36454F),
               fontWeight: FontWeight.w900,
             ),
           ),
-          const Text(
+          Text(
             '(Multiple per day allowed)',
             style: TextStyle(
-              fontSize: 20,
-              color: Color(0xFF6A7B8A),
+              fontSize: screenHeight * 0.02,
+              color: const Color(0xFF6A7B8A),
               fontWeight: FontWeight.w500,
             ),
           ),
           Expanded(
             flex: 2,
             child: ListView.builder(
-              padding: const EdgeInsets.only(top: 50, left: 5, right: 100),
+              padding: EdgeInsets.symmetric(
+                vertical: screenHeight * 0.05,
+                horizontal: screenWidth * 0.05,
+              ),
               itemCount: weekdays.length,
               itemBuilder: (context, index) {
                 final day = weekdays[index];
@@ -84,16 +92,16 @@ class _FreeTimeSlotsState extends State<FreeTimeSlots> {
                 return Row(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 14.0),
+                      padding:
+                          EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                       child: ElevatedButton(
                         onPressed: () async {
                           dayIndex = index;
                           await refreshTaskList();
                           showDialog(
                             context: context,
-                            builder: (context) => TimeSlotInput.withIndex(
-                              dayIndex,
-                              freeSlotsForADay,
+                            builder: (context) => TimeSlotInput(
+                              dayIndex: index,
                             ),
                           ).then((_) async {
                             await refreshTaskList();
@@ -104,14 +112,17 @@ class _FreeTimeSlotsState extends State<FreeTimeSlots> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          fixedSize: const Size(130, 30),
+                          fixedSize: Size(
+                            screenWidth * 0.35,
+                            screenHeight * 0.05,
+                          ),
                         ),
                         child: Text(
                           day,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: screenHeight * 0.02,
                           ),
                         ),
                       ),
@@ -122,18 +133,29 @@ class _FreeTimeSlotsState extends State<FreeTimeSlots> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
-            child: const Text(
-              "DONE",
-              style: TextStyle(color: Colors.black),
-            ),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+              
+            },
             style: ElevatedButton.styleFrom(
               elevation: 3,
               backgroundColor: Colors.blueAccent,
               alignment: Alignment.center,
+              fixedSize: Size(
+                screenWidth * 0.5,
+                screenHeight * 0.06,
+              ),
+            ),
+            child: Text(
+              "DONE",
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: screenHeight * 0.02,
+              ),
             ),
           ),
-          const SizedBox(height: 100),
+          SizedBox(height: screenHeight * 0.1),
         ],
       ),
     );

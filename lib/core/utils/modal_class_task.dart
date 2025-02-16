@@ -1,10 +1,10 @@
 class TaskModalClass {
   int? _id;
-  String _title;
-  String? _description;
-  int _priority;
-  String _timeForTask;
-  String _amountOfTime;
+  final String _title;
+  final String? _description;
+  final int _priority;
+  final String _timeForTask;
+  final String _amountOfTime;
 
   TaskModalClass(this._title, this._description, this._priority,
       this._timeForTask, this._amountOfTime);

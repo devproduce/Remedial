@@ -1,9 +1,9 @@
 import 'package:first_flutter/core/utils/modal_class_task.dart';
 import 'package:first_flutter/databsemanager/databaseTask.dart';
 import 'package:first_flutter/notification/notification_manager.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:first_flutter/provider/provider_home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:provider/provider.dart';
 
 class TaskInputDialog extends StatefulWidget {
   bool edit;
@@ -23,15 +23,15 @@ class TaskInputDialog extends StatefulWidget {
         isTaskUpdated = false,
         id = null;
 
-  TaskInputDialog.forEdit(
-      {required this.edit,
-      this.title,
-      this.description,
-      this.urgency,
-      this.id,
-      this.timeForTask,
-      this.amountOfTime})
-      : isTaskUpdated = true;
+  TaskInputDialog.forEdit({super.key, 
+    required this.edit,
+    this.title,
+    this.description,
+    this.urgency,
+    this.id,
+    this.timeForTask,
+    this.amountOfTime,
+  }) : isTaskUpdated = true;
 
   @override
   State<TaskInputDialog> createState() => _TaskInputDialogState();
@@ -40,7 +40,7 @@ class TaskInputDialog extends StatefulWidget {
 class _TaskInputDialogState extends State<TaskInputDialog> {
   bool _showError = false;
   late String _title;
-  String? _description = '';
+  final String? _description = '';
   final List<String> _urgencyLevel = ['Normal', 'Urgent'];
   final List<String> _timeForTask = ['Free Slots', 'Custom..'];
   String timeForTask = 'Free Slots';
@@ -54,10 +54,7 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
   int? urgency;
   late TextEditingController _titleText;
   late TextEditingController _descriptionText;
-  final DatabaseHelper database = DatabaseHelper();
   String? customTimeInput;
-
-  void scheduleNotification(TaskModalClass task) {}
 
   @override
   void initState() {
@@ -91,8 +88,16 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final taskInputProvider = Provider.of<TaskInputProvider>(context);
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(vertical: 100, horizontal: 40),
+      insetPadding: EdgeInsets.symmetric(
+        vertical: screenHeight * 0.1,
+        horizontal: screenWidth * 0.1,
+      ),
       elevation: 5,
       alignment: Alignment.center,
       clipBehavior: Clip.antiAlias,
@@ -100,32 +105,35 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
       child: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: MediaQuery.of(context).viewInsets,
+            padding: EdgeInsets.only(
+              bottom: mediaQuery.viewInsets.bottom,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 7),
+                SizedBox(height: screenHeight * 0.02),
                 Text(
                   widget.edit ? 'EDIT TASK' : 'ADD TASK',
-                  style: const TextStyle(
-                    fontSize: 25,
+                  style: TextStyle(
+                    fontSize: screenHeight * 0.03,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 25),
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.05),
                             child: Text(
                               'Title: ',
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: screenHeight * 0.025,
                                 fontWeight: FontWeight.w400,
                                 color: Colors.black,
                               ),
@@ -133,8 +141,9 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                           ),
                           Expanded(
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 5, right: 25),
+                              padding: EdgeInsets.only(
+                                  left: screenWidth * 0.01,
+                                  right: screenWidth * 0.05),
                               child: TextField(
                                 maxLength: 80,
                                 controller: _titleText,
@@ -147,8 +156,10 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                                     ),
                                   ),
                                   hintText: 'Title...',
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 0, horizontal: 3),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: screenHeight * 0.015,
+                                    horizontal: screenWidth * 0.02,
+                                  ),
                                   errorText: _showError
                                       ? 'Please enter a title'
                                       : null,
@@ -158,7 +169,7 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: screenHeight * 0.02),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,23 +177,26 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(left: 25),
+                              Padding(
+                                padding:
+                                    EdgeInsets.only(left: screenWidth * 0.05),
                                 child: Text(
-                                  'Discription:  ',
+                                  'Urgency:  ',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: screenHeight * 0.025,
                                     fontWeight: FontWeight.w400,
                                     color: Colors.black,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              SizedBox(height: screenHeight * 0.01),
                               Padding(
-                                padding: const EdgeInsets.only(left: 25),
+                                padding:
+                                    EdgeInsets.only(left: screenWidth * 0.05),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12.0),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.03,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.lightBlue.shade50,
                                     border: Border.all(
@@ -193,13 +207,13 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                                     value: _urgencyLevel[urgency! - 1],
                                     icon: const Icon(Icons.arrow_drop_down,
                                         color: Colors.blue),
-                                    underline: SizedBox(),
+                                    underline: const SizedBox(),
                                     items: _urgencyLevel.map((String urgency) {
                                       return DropdownMenuItem<String>(
                                         value: urgency,
                                         child: Text(urgency,
                                             style:
-                                                TextStyle(color: Colors.blue)),
+                                                const TextStyle(color: Colors.blue)),
                                       );
                                     }).toList(),
                                     onChanged: (value) {
@@ -215,32 +229,35 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                           Expanded(
                             child: Padding(
                               padding:
-                                  const EdgeInsets.only(left: 0, right: 25),
+                                  EdgeInsets.only(right: screenWidth * 0.05),
                               child: TextField(
                                 maxLines: 6,
                                 controller: _descriptionText,
                                 autofocus: true,
-                                decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    hintText: 'Description\n(Optional)',
-                                    contentPadding: EdgeInsets.symmetric(
-                                        vertical: 0, horizontal: 3)),
+                                decoration: InputDecoration(
+                                  border: const OutlineInputBorder(),
+                                  hintText: 'Description\n(Optional)',
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: screenHeight * 0.015,
+                                    horizontal: screenWidth * 0.02,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 25, top: 15),
+                        padding: EdgeInsets.only(left: screenWidth * 0.05),
                         child: Row(
                           children: [
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12.0),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.03,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade50,
-                                border:
-                                    Border.all(color: Colors.blue, width: 1),
+                                border: Border.all(color: Colors.blue, width: 1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: DropdownButton<String>(
@@ -260,7 +277,6 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                                           customTimeInput = pickedTime
                                               .format(context)
                                               .toString();
-                                          //selectedItem = customTimeInput;
                                           timeForTask = customTimeInput!;
                                         });
                                       }
@@ -275,7 +291,7 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                                     return DropdownMenuItem<String>(
                                       value: timeForTask,
                                       child: Text(timeForTask,
-                                          style: TextStyle(color: Colors.blue)),
+                                          style: const TextStyle(color: Colors.blue)),
                                     );
                                   }).toList()
                                     ..add(
@@ -283,18 +299,18 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                                         value: customTimeInput,
                                         child: Text((customTimeInput) ?? '',
                                             style:
-                                                TextStyle(color: Colors.blue)),
+                                                const TextStyle(color: Colors.blue)),
                                       ),
                                     )),
                             ),
-                            const SizedBox(width: 28),
+                            SizedBox(width: screenWidth * 0.07),
                             Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12.0),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.03,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.lightBlue.shade50,
-                                border:
-                                    Border.all(color: Colors.blue, width: 1),
+                                border: Border.all(color: Colors.blue, width: 1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: DropdownButton<String>(
@@ -320,55 +336,80 @@ class _TaskInputDialogState extends State<TaskInputDialog> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 15),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                _title = _titleText.text;
-                                if (_title.isEmpty) {
-                                  throw Exception('Title Cannot be Empty');
-                                }
+                    ],
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('CANCEL'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          _title = _titleText.text;
+                          if (_title.isEmpty) {
+                            setState(() {
+                              _showError = true;
+                            });
+                            return;
+                          }
 
-                                _description = _descriptionText.text;
-                                final taskTime = customTimeInput ?? timeForTask;
+                          String selectedTimeForTask =
+                              customTimeInput ?? timeForTask;
 
-                                final task = TaskModalClass.withId(
-                                    widget.id,
-                                    _title,
-                                    _description,
-                                    urgency!,
-                                    taskTime,
-                                    amountOfTime);
-                                if (widget.edit) {
-                                  await database.updateTask(task);
-                                } else {
-                                  await database.insertTask(task);
-                                  NotificationManager.scheduleNotification(
-                                      task);
-                                }
+                          bool isTimeAvailable =
+                              await taskInputProvider.checkTimeAvailable(
+                                  selectedTimeForTask);
 
-                                Navigator.of(context).pop(true);
-                              } catch (e) {
-                                setState(() {
-                                  _showError = true;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please enter a title'),
-                                  ),
+                          if (isTimeAvailable) {
+                            TaskModalClass task = TaskModalClass(
+                              _title,
+                              _descriptionText.text,
+                              urgency!,
+                              selectedTimeForTask,
+                              amountOfTime,
+                            );
+                            if (widget.edit) {
+                              taskInputProvider.updateTask(task);
+                            } else {
+                              taskInputProvider.addTask(task);
+                            }
+                            NotificationManager.scheduleNotification(task);
+                            Navigator.pop(context);
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Time Conflict'),
+                                  content: const Text(
+                                      'There is already a task scheduled during this time.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
                                 );
-                              }
-                            },
-                            child: Text(widget.edit ? 'EDIT' : 'ADD'),
-                          )
-                        ],
+                              },
+                            );
+                          }
+                        },
+                        child: const Text('SAVE'),
                       ),
                     ],
                   ),
                 ),
+                SizedBox(height: screenHeight * 0.01),
               ],
             ),
           ),

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool? update;
-  LoginScreen(this.update);
+  const LoginScreen(this.update, {super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -48,187 +48,217 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     final backgroundImage = isItStudent()
         ? 'assets/image/student.jpg'
         : 'assets/image/working_professional.jpg';
+
     return Scaffold(
       backgroundColor: Colors.white70,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            widget.update!
-                ? CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    backgroundImage: AssetImage(backgroundImage),
-                    minRadius: 50,
-                    maxRadius: 50,
-                    child: ClipOval(
-                      child: Image.asset(
-                        backgroundImage,
-                        fit: BoxFit.cover, // Ensures the image covers the avatar and stays centered
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              widget.update!
+                  ? CircleAvatar(
+                      backgroundColor: Colors.blueAccent,
+                      backgroundImage: AssetImage(backgroundImage),
+                      radius: screenWidth * 0.15, // Dynamic size
+                      child: ClipOval(
+                        child: Image.asset(
+                          backgroundImage,
+                          fit: BoxFit.cover,
+                          width: screenWidth * 0.3,
+                          height: screenWidth * 0.3,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      'Remedial',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.08, // Dynamic font size
+                        fontFamily: 'Times New Roman',
+                        shadows: [
+                          Shadow(
+                            offset: Offset(screenWidth * 0.005, screenHeight * 0.005),
+                            blurRadius: screenWidth * 0.02,
+                            color: Colors.grey.withOpacity(0.5),
+                          ),
+                        ],
+                        foreground: Paint()
+                          ..shader = const LinearGradient(
+                            colors: <Color>[Colors.grey, Colors.black],
+                          ).createShader(
+                            Rect.fromLTWH(
+                              0.0,
+                              0.0,
+                              screenWidth * 0.8,
+                              screenHeight * 0.1,
+                            ),
+                          ),
                       ),
                     ),
-                  )
-                : Text(
-                    'Remedial',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 35,
-                      fontFamily: 'Times New Roman', // Use the custom font
-                      shadows: [
-                        Shadow(
-                          offset: const Offset(2.0, 2.0),
-                          blurRadius: 3.0,
-                          color: Colors.grey.withOpacity(0.5),
+              Padding(
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      showCursor: true,
+                      maxLength: 20,
+                      decoration: InputDecoration(
+                        labelText: 'Enter your name',
+                        labelStyle: TextStyle(
+                          fontSize: screenWidth * 0.045, // Dynamic font size
+                          color: Colors.black,
                         ),
-                      ],
-                      foreground: Paint()
-                        ..shader = const LinearGradient(
-                          colors: <Color>[Colors.grey, Colors.black],
-                        ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                    ),
-                  ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    showCursor: true,
-                    maxLength: 20,
-                    decoration: InputDecoration(
-                      labelText: 'Enter your name',
-                      labelStyle: const TextStyle(
-                        fontSize: 18.0,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(screenWidth * 0.02),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.blue,
+                            width: screenWidth * 0.005,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                            width: screenWidth * 0.005,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        prefixIcon: Icon(
+                          Icons.person,
+                          color: Colors.grey,
+                          size: screenWidth * 0.06, // Dynamic size
+                        ),
+                        counterText: '',
+                        errorText: showError ? 'Enter The Name' : null,
+                      ),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.045, // Dynamic font size
                         color: Colors.black,
                       ),
-                      border: const OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                      ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.blue,
-                          width: 2.0,
-                        ),
-                      ),
-                      enabledBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.grey,
-                          width: 1.0,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: const Icon(
-                        Icons.person,
-                        color: Colors.grey,
-                      ),
-                      counterText: '',
-                      errorText: showError ? 'Enter The Name' : null,
                     ),
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.black,
+                    SizedBox(height: screenHeight * 0.02),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(
+                          width: screenWidth * 0.4,
+                          child: DropdownMenu<String>(
+                            dropdownMenuEntries: ageEntries.map((slot) {
+                              return DropdownMenuEntry<String>(
+                                value: slot,
+                                label: slot,
+                              );
+                            }).toList(),
+                            hintText: 'Age',
+                            initialSelection:
+                                widget.update! ? personalDetails?.ageRange : null,
+                            errorText: showAgeError ? 'Enter The Age' : null,
+                            onSelected: (slot) {
+                              age = slot;
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: screenWidth * 0.4,
+                          child: DropdownMenu<String>(
+                            dropdownMenuEntries: professionEntries.map((profession) {
+                              return DropdownMenuEntry<String>(
+                                value: profession,
+                                label: profession,
+                              );
+                            }).toList(),
+                            hintText: 'Profession',
+                            initialSelection:
+                                widget.update! ? personalDetails?.profession : null,
+                            errorText: showProfessionError ? 'Enter The Details' : null,
+                            onSelected: (profession) {
+                              selectedProfession = profession;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      DropdownMenu<String>(
-                        dropdownMenuEntries: ageEntries.map((slot) {
-                          return DropdownMenuEntry<String>(
-                            value: slot,
-                            label: slot,
-                          );
-                        }).toList(),
-                        hintText: 'Age',
-                        initialSelection:
-                            widget.update! ? personalDetails?.ageRange : null,
-                        errorText: showAgeError ? 'Enter The Age' : null,
-                        onSelected: (slot) {
-                          age = slot;
-                        },
-                      ),
-                      const SizedBox(width: 25),
-                      DropdownMenu<String>(
-                        dropdownMenuEntries: professionEntries.map((profession) {
-                          return DropdownMenuEntry<String>(
-                            value: profession,
-                            label: profession,
-                          );
-                        }).toList(),
-                        hintText: 'Profession',
-                        initialSelection:
-                            widget.update! ? personalDetails?.profession : null,
-                        errorText: showProfessionError ? 'Enter The Details' : null,
-                        width: 200,
-                        onSelected: (profession) {
-                          selectedProfession = profession;
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if ((nameController.text).isEmpty ||
-                          (age?.isEmpty)! ||
-                          (selectedProfession?.isEmpty)!) {
-                        setState(() {
-                          showError = (nameController.text).isEmpty;
-                          showAgeError = (age?.isEmpty)!;
-                          showProfessionError = (selectedProfession?.isEmpty)!;
-                        });
-                      } else {
-                        try {
-                          personalDetails = widget.update!
-                              ? PersonalDetails.withId(
-                                  personalDetails?.id,
-                                  nameController.text,
-                                  age,
-                                  selectedProfession,
-                                )
-                              : PersonalDetails(
-                                  nameController.text, age, selectedProfession, 1);
-                          if (widget.update!) {
-                            await database.updatePersonalDetails(personalDetails!);
-                          } else {
-                            await database.addPersonalDetails(personalDetails!);
-                          }
+                    SizedBox(height: screenHeight * 0.02),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if ((nameController.text).isEmpty ||
+                            (age?.isEmpty)! ||
+                            (selectedProfession?.isEmpty)!) {
+                          setState(() {
+                            showError = (nameController.text).isEmpty;
+                            showAgeError = (age?.isEmpty)!;
+                            showProfessionError = (selectedProfession?.isEmpty)!;
+                          });
+                        } else {
+                          try {
+                            personalDetails = widget.update!
+                                ? PersonalDetails.withId(
+                                    personalDetails?.id,
+                                    nameController.text,
+                                    age,
+                                    selectedProfession,
+                                  )
+                                : PersonalDetails(
+                                    nameController.text, age, selectedProfession, 1);
+                            if (widget.update!) {
+                              await database.updatePersonalDetails(personalDetails!);
+                            } else {
+                              await database.addPersonalDetails(personalDetails!);
+                            }
 
-                          await Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const navBar()),
-                          );
-                        } catch (error) {
-                          print("Error: $error");
-                          // Handle navigation error (e.g., show a snackbar)
+                            await Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const navBar()),
+                            );
+                          } catch (error) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Error: $error"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
-                      }
-                    },
-                    child: Text(
-                      widget.update! ? 'Edit' : 'Let\'s Go',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color.fromARGB(255, 67, 171, 255),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.1,
+                          vertical: screenHeight * 0.015,
+                        ),
+                        elevation: 5,
+                        minimumSize:
+                            Size(screenWidth * 0.8, screenHeight * 0.06),
+                      ),
+                      child: Text(
+                        widget.update! ? 'Edit' : 'Let\'s Go',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: screenWidth * 0.05, // Dynamic font size
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 67, 171, 255),
-                      textStyle: const TextStyle(color: Colors.white),
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      elevation: 5,
-                      minimumSize: Size(MediaQuery.of(context).size.width, 50),
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
+                    SizedBox(height: screenHeight * 0.1),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

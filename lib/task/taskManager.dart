@@ -7,17 +7,16 @@ class TaskManager {
   // Function to parse a string time into a TimeOfDay object
   static TimeOfDay _parseTimeOfDay(String time) {
     try {
-      final DateTime parsedTime = DateFormat.Hm().parse(time); // Expecting "HH:mm" format
+      final parsedTime = DateFormat.Hm().parse(time);
       return TimeOfDay(hour: parsedTime.hour, minute: parsedTime.minute);
     } catch (e) {
-      // Handle unexpected time format
       print('Error parsing time: $e');
-      return TimeOfDay.now(); // Default fallback
+      return TimeOfDay.now(); // Fallback to current time
     }
   }
 
-  // Function to convert time duration strings to Duration objects
-  static Duration _amountOfTime(String time) {
+  // Function to convert a string duration to a Duration object
+  static Duration _parseDuration(String time) {
     switch (time.toLowerCase()) {
       case '10 minutes':
         return const Duration(minutes: 10);
@@ -25,54 +24,34 @@ class TaskManager {
         return const Duration(minutes: 30);
       case '1 hour':
         return const Duration(hours: 1);
-      case '2+ hour':
+      case '2+ hours':
         return const Duration(hours: 2);
       default:
-        print('Unknown time duration: $time');
-        return const Duration(); // Default to zero duration
+        
+        return Duration.zero; // Default to zero duration
     }
   }
 
   // Function to get the current or next task
   static Future<Map<String, int>> getTheTask() async {
     DatabaseHelper database = DatabaseHelper();
-
-    // Fetch and sort tasks by time
     List<TaskModalClass> sortedTasks = await database.getSortedTask();
-    TimeOfDay now = TimeOfDay.now();
+    DateTime now = DateTime.now();
 
-    // Iterate through sorted tasks
-    for (int i = 0; i < sortedTasks.length; i++) {
-      TimeOfDay taskTime = _parseTimeOfDay(sortedTasks[i].timeForTask);
-      Duration taskDuration = _amountOfTime(sortedTasks[i].amountOfTime);
+    for (var task in sortedTasks) {
+      TimeOfDay taskTime = _parseTimeOfDay(task.timeForTask);
+      Duration taskDuration = _parseDuration(task.amountOfTime);
 
-      // Combine date with task and current times for comparison
-      DateTime nowDateTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-        now.hour,
-        now.minute,
-      );
-
-      DateTime taskStartTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-        taskTime.hour,
-        taskTime.minute,
-      );
-
+      DateTime taskStartTime = DateTime(now.year, now.month, now.day, taskTime.hour, taskTime.minute);
       DateTime taskEndTime = taskStartTime.add(taskDuration);
 
-      // Check if the current time is within the task's duration
-      if (nowDateTime.isAfter(taskStartTime) && nowDateTime.isBefore(taskEndTime)) {
-        return {sortedTasks[i].title: 0}; // Current Task
-      } else if (nowDateTime.isBefore(taskStartTime)) {
-        return {sortedTasks[i].title: 1}; // Upcoming Task
+      if (now.isAfter(taskStartTime) && now.isBefore(taskEndTime)) {
+        return {task.title: 0}; // Current task
+      } else if (now.isBefore(taskStartTime)) {
+        return {task.title: 1}; // Upcoming task
       }
     }
 
-    return {'No task available': -1}; // No Task
+    return {'No task available': -1}; // No task found
   }
 }

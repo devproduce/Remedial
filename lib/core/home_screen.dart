@@ -1,10 +1,9 @@
-import 'package:first_flutter/core/input/task_input_dialog.dart';
-import 'package:first_flutter/databsemanager/databasePersonalDetails.dart';
-import 'package:first_flutter/task/taskManager.dart';
-//import 'package:first_flutter/databsemanager/task_manager.dart'; // Import TaskManager class
-import 'package:flutter/cupertino.dart';
+// lib/screens/home_screen.dart
+import 'package:first_flutter/provider/provider_home_screen.dart';
 import 'package:flutter/material.dart';
-//import 'package:marquee/marquee.dart'; // Add marquee for scrolling text
+import 'package:provider/provider.dart';
+
+import '../core/input/task_input_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +13,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String greet = 'GOOD MORNING';
-  String? name;
-  String taskStatus = 'Loading...'; // For current or upcoming task
-  String taskTitle = ''; // Task title to display
-
   String getTime() {
     final now = DateTime.now();
     if (now.hour > 12 && now.hour < 18) {
@@ -30,136 +24,111 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  DatabasePersonalDetails database = DatabasePersonalDetails();
-  PersonalDetails? personalDetails;
-
-  void refreshPersonalDetails() async {
-    PersonalDetails details = (await database.getPersonalDetails())!;
-    setState(() {
-      personalDetails = details;
-    });
-  }
-
-  Future<void> getPersonalDetails() async {
-    try {
-      personalDetails = await database.getPersonalDetails();
-      if (personalDetails?.name == null) {
-        setState(() {
-          name = 'Guest';
-        });
-      } else {
-        setState(() {
-          name = personalDetails?.name;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        name = 'Guest';
-      });
-    }
-  }
-
-  Future<void> getTaskStatus() async {
-    var taskData = await TaskManager.getTheTask();
-    setState(() {
-      taskTitle = taskData.keys.first;
-      taskStatus =
-          taskData.values.first == 0 ? 'Current Task' : 'Upcoming Task';
-    });
-    print("$taskStatus");
-  }
-
   @override
   void initState() {
     super.initState();
-
+    // Fetch personal details and task status when screen loads
     Future.wait([
-      getPersonalDetails(),
-      getTaskStatus(),
+      Provider.of<UserProvider>(context, listen: false).fetchPersonalDetails(),
+      Provider.of<TaskProvider>(context, listen: false).fetchTaskStatus(),
     ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: const Color(0xFFE0E0E0),
       body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: getTime(),
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.indigoAccent,
-                    ),
-                  ),
-                  const TextSpan(
-                    text: " ",
-                    style: TextStyle(letterSpacing: -5.0),
-                  ),
-                  TextSpan(
-                    text: name,
-                    style: const TextStyle(
-                      fontSize: 60,
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 10),
-                Text(
-                  taskStatus,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                SizedBox(height: 10),
-                taskTitle.isNotEmpty
-                    ? SizedBox(
-                        height: 30,
-                        child: Text(
-                          taskTitle, // Rolling task title
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      )
-                    : const Text(
-                        'No task available',
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                return RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: getTime(),
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15),
+                          fontSize: screenWidth * 0.1,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.indigoAccent,
+                        ),
                       ),
-              ],
+                      const TextSpan(
+                        text: " ",
+                        style: TextStyle(letterSpacing: -5.0),
+                      ),
+                      TextSpan(
+                        text: userProvider.name,
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.15,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 200),
-            Container(
-              alignment: Alignment.bottomCenter,
+            SizedBox(height: screenHeight * 0.01),
+            Consumer<TaskProvider>(
+              builder: (context, taskProvider, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      taskProvider.taskStatus,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.05,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.005),
+                    taskProvider.taskTitle.isNotEmpty
+                        ? SizedBox(
+                            height: screenHeight * 0.04,
+                            child: Text(
+                              taskProvider.taskTitle,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w400,
+                                fontSize: screenWidth * 0.04,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'No task available',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth * 0.04,
+                            ),
+                          ),
+                  ],
+                );
+              },
+            ),
+            const Spacer(),
+            Center(
               child: ElevatedButton.icon(
                 onPressed: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) => TaskInputDialog(),
                   ).then((_) {
-                    getTaskStatus();
+                    // After task input, refresh the task status
+                    Provider.of<TaskProvider>(context, listen: false).fetchTaskStatus();
                   });
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.add_task_rounded,
-                  size: 80.0,
+                  size: screenWidth * 0.2,
                   color: Colors.redAccent,
                 ),
                 label: const Text(''),
@@ -173,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            const Spacer(),
           ],
         ),
       ),

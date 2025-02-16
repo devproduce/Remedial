@@ -1,107 +1,87 @@
-import 'package:first_flutter/core/free_time_slots.dart';
-import 'package:first_flutter/core/utils/modal_class.dart';
+import 'package:first_flutter/provider/timeslot_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class TimeSlotInput extends StatefulWidget {
-  final int? dayIndex;
-  final List<FreeSlotsModalClass> initTimeSlots;
+  final int dayIndex;
 
-  TimeSlotInput.withIndex(this.dayIndex, this.initTimeSlots);
+  const TimeSlotInput({super.key, required this.dayIndex});
 
   @override
   State<TimeSlotInput> createState() => _TimeSlotInputState();
 }
 
 class _TimeSlotInputState extends State<TimeSlotInput> {
-  String selectedItems = '0';
-  final slotItems = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-  List<TimeSlotData> timeSlotsData = [];
-  List<FreeSlotsModalClass> freeTimeSlots = [];
-  DatabaseService database = DatabaseService();
-  var _initialSelection = '0';
-  List<FreeSlotsModalClass> freeTime = [];
-
-  void _setInitState() {
-    if (widget.initTimeSlots.isNotEmpty) {
-      var num = widget.initTimeSlots[0].numberOfFreeSlots;
-      setState(() {
-        _initialSelection = num.toString();
-        selectedItems = _initialSelection;
-        timeSlotsData = List.generate(
-          int.parse(selectedItems),
-          (index) => TimeSlotData(),
-        );
-      });
-    }
-  }
-
-  bool isFreeTimeSlotsEmpty() {
-    if (freeTimeSlots.isEmpty) {
-      return true;
-    } else{
-      return false;
-
-    }
-      
-  }
+  int? selectedFreeSlots;
 
   @override
   void initState() {
     super.initState();
-    _setInitState();
+    Provider.of<TimeSlotProvider>(context, listen: false)
+      .loadTimeSlotsFromDatabase();
+    
+  
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<TimeSlotProvider>(context, listen: false);
+      if (!provider.timeSlotsPerDay.containsKey(widget.dayIndex)) {
+        provider.initializeDaySlots(widget.dayIndex, []);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final timeSlotProvider = Provider.of<TimeSlotProvider>(context);
+    final timeSlots = timeSlotProvider.timeSlotsPerDay[widget.dayIndex] ?? [];
+    final maxFreeSlots = timeSlotProvider.getMaxFreeSlots(widget.dayIndex);
+
     return Dialog(
       elevation: 5,
-      insetPadding: const EdgeInsets.symmetric(vertical: 250, horizontal: 40),
+      insetPadding: EdgeInsets.symmetric(
+        vertical: screenHeight * 0.25,
+        horizontal: screenWidth * 0.1,
+      ),
       alignment: Alignment.center,
-      clipBehavior: Clip.antiAlias,
       backgroundColor: Colors.lightBlue.shade100,
       child: Column(
         children: [
-          const SizedBox(height: 10),
-          const Text(
+          SizedBox(height: screenHeight * 0.01),
+          Text(
             "Time Slots",
             style: TextStyle(
-              fontSize: 26,
+              fontSize: screenWidth * 0.065,
               fontWeight: FontWeight.w900,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: screenHeight * 0.01),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(width: 10),
-              const Text(
-                "No. Of Free Time Slots",
+              SizedBox(width: screenWidth * 0.02),
+              Text(
+                "Max Free Slots:",
                 style: TextStyle(
-                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.indigoAccent,
+                  fontSize: screenWidth * 0.04,
                 ),
               ),
-              const SizedBox(width: 10),
-              DropdownMenu<String>(
-                dropdownMenuEntries: slotItems.map((slot) {
-                  return DropdownMenuEntry<String>(
+              DropdownButton<int>(
+                value: selectedFreeSlots,
+                items: List.generate(10, (index) => index + 1).map((slot) {
+                  return DropdownMenuItem<int>(
                     value: slot,
-                    label: slot,
+                    child: Text(slot.toString()),
                   );
                 }).toList(),
-                initialSelection: _initialSelection,
-                hintText: 'No. of Time Slots',
-                onSelected: (newItem) {
+                onChanged: (value) {
                   setState(() {
-                    selectedItems = newItem!;
-                    timeSlotsData = List.generate(
-                      int.parse(selectedItems),
-                      (index) => TimeSlotData(),
-                    );
+                    selectedFreeSlots = value;
                   });
+                  timeSlotProvider.setMaxFreeSlots(widget.dayIndex, value!);
                 },
               ),
             ],
@@ -110,136 +90,173 @@ class _TimeSlotInputState extends State<TimeSlotInput> {
             flex: 2,
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: timeSlotsData.length,
+              itemCount: timeSlots.length,
               itemBuilder: (context, index) {
-                return TimeSlot(
-                  onTimesChanged: (fromTime, toTime) {
-                    timeSlotsData[index].fromTime = fromTime;
-                    timeSlotsData[index].toTime = toTime;
+                final slot = timeSlots[index];
+                return TimeSlotWidget(
+                  fromTime: slot.from,
+                  toTime: slot.to,
+                  onTimesChanged: (from, to) async {
+                    if (_isCollidingWithOtherSlots(
+                        List.from(timeSlots), from, to, index)) {
+                      _showCollisionError(context);
+                    } else {
+                      await timeSlotProvider.updateTimeSlot(
+                        widget.dayIndex,
+                        index,
+                        from,
+                        to,
+                      );
+                    }
+                  },
+                  onRemove: () async{
+                    await timeSlotProvider.removeTimeSlot(widget.dayIndex, index);
                   },
                 );
               },
+
+                    
+              
             ),
           ),
+          if (timeSlots.length < maxFreeSlots)
+            ElevatedButton(
+              onPressed: () {
+                timeSlotProvider.addTimeSlot(
+                  widget.dayIndex,
+                  DateTime.now(),
+                  DateTime.now().add(const Duration(hours: 1)),
+                );
+              },
+              child: const Text('Add Slot'),
+            ),
           ElevatedButton(
             onPressed: () {
-              if (isFreeTimeSlotsEmpty()) {
-                freeTimeSlots = List.generate(
-                    int.parse(selectedItems),
-                    (index) => FreeSlotsModalClass(
-                        widget.dayIndex,
-                        int.parse(selectedItems),
-                        timeSlotsData[index].fromTime,
-                        timeSlotsData[index].toTime));
-                        insertTimeSlotList(freeTimeSlots,true);
-              } else {
-                freeTimeSlots = List.generate(
-                    int.parse(selectedItems),
-                    (index) => FreeSlotsModalClass.withId(
-                      widget.initTimeSlots[index].id,
-                      widget.dayIndex,
-                        int.parse(selectedItems),
-                        timeSlotsData[index].fromTime,
-                        timeSlotsData[index].toTime
-                        ));
-                        insertTimeSlotList(freeTimeSlots,false);
-              }
-
-              
-
-              _initialSelection = selectedItems;
-
               Navigator.pop(context, true);
             },
             child: const Text('SUBMIT'),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: screenHeight * 0.01),
         ],
       ),
     );
   }
 
-  void insertTimeSlotList(List<FreeSlotsModalClass> timeslots , bool addTimeSlot) {
-    for (int i = 0; i < timeslots.length; i++) {
-      if (addTimeSlot) {
-        database.addTimeSlot(timeslots[i]);
+  bool _isCollidingWithOtherSlots(
+      List<AppTimeSlot> slots, DateTime from, DateTime to, int currentIndex) {
+    for (int i = 0; i < slots.length; i++) {
+      if (i == currentIndex) continue; // Skip the current slot
+      final slot = slots[i];
+      if (from.isBefore(slot.to) && to.isAfter(slot.from)) {
+        // Collision detected
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _showCollisionError(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Invalid Time Slot'),
+        content: const Text(
+            'The selected time slot is colliding with another slot. Please choose a different time.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class TimeSlotWidget extends StatelessWidget {
+  final DateTime fromTime;
+  final DateTime toTime;
+  final void Function(DateTime from, DateTime to) onTimesChanged;
+  final VoidCallback onRemove;
+
+  const TimeSlotWidget({
+    super.key,
+    required this.fromTime,
+    required this.toTime,
+    required this.onTimesChanged,
+    required this.onRemove,
+  });
+
+  Future<void> _selectTime(BuildContext context, bool isFromTime) async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(
+        isFromTime ? fromTime : toTime,
+      ),
+    );
+
+    if (selectedTime != null) {
+      final newDateTime = DateTime(
+        fromTime.year,
+        fromTime.month,
+        fromTime.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+      if (isFromTime) {
+        onTimesChanged(newDateTime, toTime);
       } else {
-        database.updateTimeSlot(timeslots[i]);
+        onTimesChanged(fromTime, newDateTime);
       }
     }
   }
-}
-
-class TimeSlotData {
-  String? fromTime;
-  String? toTime;
-}
-
-class TimeSlot extends StatefulWidget {
-  final void Function(String? fromTime, String? toTime) onTimesChanged;
-
-  const TimeSlot({super.key, required this.onTimesChanged});
-
-  @override
-  State<TimeSlot> createState() => _TimeSlotState();
-}
-
-class _TimeSlotState extends State<TimeSlot> {
-  String? fromTime;
-  String? toTime;
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      padding: EdgeInsets.symmetric(
+        vertical: screenWidth * 0.025,
+        horizontal: screenWidth * 0.025,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text("Time Slot"),
+          Text(
+            "Time Slot",
+            style: TextStyle(fontSize: screenWidth * 0.04),
+          ),
           TextButton(
-            onPressed: () async {
-              TimeOfDay? selectedTime = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.now(),
-              );
-
-              if (selectedTime != null) {
-                setState(() {
-                  fromTime = selectedTime.format(context);
-                });
-                widget.onTimesChanged(fromTime, toTime);
-              }
-            },
+            onPressed: () => _selectTime(context, true),
             child: Text(
-              fromTime ?? 'From',
+              TimeOfDay.fromDateTime(fromTime).format(context),
               style: TextStyle(
                 color: Colors.teal.shade700,
+                fontSize: screenWidth * 0.03,
               ),
             ),
           ),
           TextButton(
-            onPressed: () async {
-              TimeOfDay? selectedTime = await showTimePicker(
-                context: context,
-                initialTime: TimeOfDay.now(),
-              );
-
-              if (selectedTime != null) {
-                setState(() {
-                  toTime = selectedTime.format(context);
-                });
-                widget.onTimesChanged(fromTime, toTime);
-              }
-            },
+            onPressed: () => _selectTime(context, false),
             child: Text(
-              toTime ?? 'To',
+              TimeOfDay.fromDateTime(toTime).format(context),
               style: TextStyle(
                 color: Colors.teal.shade700,
+                fontSize: screenWidth * 0.03,
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: onRemove,
           ),
         ],
       ),
     );
   }
+
+
+
+  
 }

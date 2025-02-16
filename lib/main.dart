@@ -1,13 +1,19 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:first_flutter/core/utils/splash_screen.dart';
 import 'package:first_flutter/notification/notification_manager.dart';
+import 'package:first_flutter/provider/provider_home_screen.dart';
+import 'package:first_flutter/provider/timeslot_provider.dart';
 //import 'package:first_flutter/login/login.dart';
 //import 'package:first_flutter/notification/notification_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 //import 'core/nav_bar.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final provider = TimeSlotProvider();
+  
   await AwesomeNotifications().initialize(
     null,
     [
@@ -33,7 +39,20 @@ void main() async {
   }
 });
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+    
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => TimeSlotProvider()),
+        ChangeNotifierProvider(create: (_) => TaskInputProvider()),
+
+        
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 
@@ -65,7 +84,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(),
+      debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          scaffoldBackgroundColor: const Color(0xFFE0E0E0),
+        ),
         home: Scaffold(
           resizeToAvoidBottomInset: false,
           body: SplashScreen(),

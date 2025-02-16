@@ -45,9 +45,9 @@ class DatabasePersonalDetails {
 
   DatabasePersonalDetails._internal();
 
-  static final _databaseName = 'personal_details.db';
-  static final _databaseVersion = 1;
-  static final _table = 'personal_details';
+  static const _databaseName = 'personal_details.db';
+  static const _databaseVersion = 1;
+  static const _table = 'personal_details';
 
   Future<void> initializeDatabase() async {
     final path = await getDatabasesPath();
@@ -63,7 +63,7 @@ class DatabasePersonalDetails {
         name TEXT,
         ageRange TEXT,
         profession TEXT,
-        isUserLoggedIn INTEGER
+        isUserLoggedIn INTEGER DEFAULT 0
       )
     ''');
   }

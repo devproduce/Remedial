@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -42,7 +44,7 @@ Future<void> getPersonalDetails() async {
 
     Timer(const Duration(seconds: 1), () {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-          builder: (context) => isUserLoggedIn ? navBar() : LoginScreen(false)));
+          builder: (context) => isUserLoggedIn ? const navBar() : LoginScreen(false)));
     });
   }
 

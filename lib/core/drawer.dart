@@ -105,14 +105,14 @@ class _MyDrawerState extends State<MyDrawer> {
               UserAccountsDrawerHeader(
                 accountName: Text(
                   name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 accountEmail: Text(
                   profession,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white70,
                   ),
@@ -129,7 +129,7 @@ class _MyDrawerState extends State<MyDrawer> {
                             builder: (context) => LoginScreen(true)));
                   },
                 ),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors
                       .transparent, // Transparent to show the blurred image
                 ),
@@ -152,8 +152,8 @@ class _MyDrawerState extends State<MyDrawer> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.logout, color: Colors.redAccent),
-            title: Text(
+            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            title: const Text(
               "Logout",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -174,7 +174,7 @@ class _MyDrawerState extends State<MyDrawer> {
               
             },
           ),
-          ListTile(
+          const ListTile(
             leading: Icon(Icons.settings, color: Colors.grey),
             title: Text(
               "Settings",
@@ -184,7 +184,7 @@ class _MyDrawerState extends State<MyDrawer> {
                 color: Colors.black87,
               ),
             ),
-            contentPadding: const EdgeInsets.only(left: 16, top: 450),
+            contentPadding: EdgeInsets.only(left: 16, top: 450),
           ),
         ],
       ),

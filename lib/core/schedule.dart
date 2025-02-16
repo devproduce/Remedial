@@ -1,5 +1,4 @@
 import 'package:first_flutter/core/free_time_slots.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MySchedule extends StatefulWidget {
@@ -12,78 +11,90 @@ class MySchedule extends StatefulWidget {
 class _MyScheduleState extends State<MySchedule> {
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: 300,
-            child: Text(
-          
-  "To optimize your task schedule, would you like to share your free time slots or your full schedule for today?",
-  style:  TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold,
-  fontStyle: FontStyle.italic,
-  fontFamily: 'Roboto',
-  
-  ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-  softWrap: true,
-  overflow: TextOverflow.clip,
-  textAlign: TextAlign.center,
-  
-),
-
-
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.08, // Dynamic horizontal padding
           ),
-          const SizedBox(
-            height: 10,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: screenWidth * 0.9, // Dynamic width for the text
+                child: Text(
+                  "To optimize your task schedule, would you like to share your free time slots or your full schedule for today?",
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.06, // Scaled font size
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                    fontFamily: 'Roboto',
+                    height: 1.5, // Increased line height for readability
+                  ),
+                  softWrap: true,
+                  overflow: TextOverflow.clip,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.05), // Increased dynamic spacing
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FreeTimeSlots(),
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      fixedSize: Size(
+                        screenWidth * 0.4, // Scaled button width
+                        screenHeight * 0.07, // Scaled button height
+                      ),
+                      elevation: 3,
+                    ),
+                    child: Text(
+                      'Free Time Slots',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.040, // Scaled button text
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Define action for "Schedule"
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      fixedSize: Size(
+                        screenWidth * 0.4, // Scaled button width
+                        screenHeight * 0.07, // Scaled button height
+                      ),
+                      elevation: 3,
+                    ),
+                    child: Text(
+                      'Schedule',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.040, // Scaled button text
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          
-
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  crossAxisAlignment: CrossAxisAlignment.center, // Evenly distribute buttons
-  children: [
-    ElevatedButton(
-      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => FreeTimeSlots())), // Define action for "Free Time Slots"
-      child: const Text('Free Time Slots', style: TextStyle(
-        color: Colors.black,
-        fontWeight: FontWeight.bold,
-        fontSize: 15,
-
-
-      ),),
-      style:  const ButtonStyle(
-        backgroundColor:  WidgetStatePropertyAll(Colors.blueAccent),
-        fixedSize: WidgetStatePropertyAll(Size(160, 10))
-        
-
+        ),
       ),
-    ),
-    ElevatedButton(
-      onPressed: () => null, // Define action for "Schedule"
-      child: const Text('Schedule',style: TextStyle(
-        color: Colors.black,
-        fontWeight: FontWeight.bold,
-        fontSize: 15,
-        
-
-
-      ),),
-      style:  const ButtonStyle(
-        backgroundColor:  WidgetStatePropertyAll(Colors.blueAccent),
-        fixedSize: WidgetStatePropertyAll(Size(160, 10))
-        
-
-      ),
-
-    ),
-  ],
-),
-           
-        ],
-      )
     );
   }
 }

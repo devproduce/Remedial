@@ -96,7 +96,7 @@ class DatabaseHelper {
     Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
     'tasks',
-    orderBy: 'timeForTask ASC', 
+    orderBy: 'timeForTask DESC', 
   );
 
     return List.generate(maps.length, (i) {
